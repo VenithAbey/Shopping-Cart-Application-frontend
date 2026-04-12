@@ -80,11 +80,13 @@ export default function AdminDashboard() {
       }
     } catch (e) { console.error('Products load failed', e) }
 
-    setCategories([
-      { id: '1', name: 'Fresh Food' }, { id: '2', name: 'Bakery & Sweets' },
-      { id: '3', name: 'Dairy & Eggs' }, { id: '4', name: 'Pantry' },
-      { id: '5', name: 'Drinks' }, { id: '6', name: 'Snacks' }
-    ])
+    try {
+      const catRes = await fetch('http://localhost:8080/api/categories')
+      if (catRes.ok) {
+        const data = await catRes.json()
+        setCategories(data.map((c: any) => ({ id: String(c.id), name: c.name })))
+      }
+    } catch (e) { console.error('Categories load failed', e) }
 
     try {
       const ordersRes = await fetch('http://localhost:8080/api/orders/all', {
@@ -123,19 +125,26 @@ export default function AdminDashboard() {
     e.preventDefault()
     const token = localStorage.getItem('adminToken')
     const targetCategory = categories.find(c => c.name === formData.category)
+    if (!targetCategory) { alert('Please select a valid category'); return }
     try {
       const res = await fetch('http://localhost:8080/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ name: formData.name, description: formData.description, price: parseFloat(formData.price), stock: parseInt(formData.stock), imageUrl: '', categoryId: targetCategory?.id || '1' })
+        body: JSON.stringify({ name: formData.name, description: formData.description, price: parseFloat(formData.price), stock: parseInt(formData.stock), imageUrl: '', categoryId: Number(targetCategory.id) })
       })
       if (res.ok) {
         const saved = await res.json()
         setProducts([...products, { id: String(saved.id), name: saved.name, description: saved.description, price: saved.price, category: typeof saved.category === 'object' ? saved.category.name : saved.category, stock: saved.stock }])
+        setFormData({ name: '', description: '', price: '', category: '', stock: '' })
+        setShowProductForm(false)
+      } else {
+        const err = await res.json()
+        alert('Failed to add product: ' + (err.message || res.status))
       }
-    } catch (e) { console.error('Add product failed', e) }
-    setFormData({ name: '', description: '', price: '', category: '', stock: '' })
-    setShowProductForm(false)
+    } catch (e) {
+      console.error('Add product failed', e)
+      alert('Network error — make sure the backend is running.')
+    }
   }
 
   const handleDeleteProduct = async (id: string) => {
