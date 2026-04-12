@@ -21,6 +21,10 @@ export default function Navigation() {
   useEffect(() => {
     const saved = localStorage.getItem('deliveryAddress')
     if (saved) setDeliveryAddress(saved)
+    
+    const handleOpenLogin = () => setShowLoginModal(true)
+    window.addEventListener('openLoginModal', handleOpenLogin)
+    return () => window.removeEventListener('openLoginModal', handleOpenLogin)
   }, [])
 
   const handleSaveLocation = () => {
@@ -46,8 +50,8 @@ export default function Navigation() {
       <div className="bg-red-600 text-white py-2 px-4">
         <div className="max-w-[1400px] mx-auto w-full px-4 flex items-center justify-between text-sm">
           <div className="flex items-center gap-6">
-            <span>🛒 ShopCart</span>
-            <span>Fresh products, delivered</span>
+            <Link href="/" className="hover:opacity-80 transition-opacity font-bold">🛒 ShopCart</Link>
+            <span className="hidden sm:inline">Fresh products, delivered</span>
           </div>
           <div className="hidden md:flex items-center gap-6">
             <Link href="/orders" className="hover:opacity-80">My Orders</Link>

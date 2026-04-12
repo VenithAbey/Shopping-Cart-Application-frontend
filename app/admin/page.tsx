@@ -23,11 +23,23 @@ interface Category {
   name: string
 }
 
+interface AdminOrder {
+  id: string
+  date: string
+  total: number
+  status: string
+  items: number
+  customerName: string
+  email: string
+}
+
 export default function AdminPage() {
   const authState = useContext(AuthContext)
-  const [activeTab, setActiveTab] = useState('products')
+  const [activeTab, setActiveTab] = useState('catalog')
+  const [activeCategoryTab, setActiveCategoryTab] = useState('All')
   const [products, setProducts] = useState<AdminProduct[]>([])
   const [categories, setCategories] = useState<Category[]>([])
+  const [orders, setOrders] = useState<AdminOrder[]>([])
   const [loading, setLoading] = useState(true)
   const [showProductForm, setShowProductForm] = useState(false)
   const [formData, setFormData] = useState({
@@ -44,20 +56,69 @@ export default function AdminPage() {
       return
     }
 
-    // Simulate loading data
-    setTimeout(() => {
-      setProducts([
-        { id: '1', name: 'Fresh Vegetables Mix', description: 'Organic fresh vegetables', price: 12.99, category: 'vegetables', stock: 50 },
-        { id: '2', name: 'Organic Tomatoes', description: 'Fresh red tomatoes from farm', price: 8.99, category: 'vegetables', stock: 40 }
-      ])
+    const loadAdminData = async () => {
+      try {
+        const prodRes = await fetch('http://localhost:8080/api/products')
+        if (prodRes.ok) {
+          const data = await prodRes.json()
+          setProducts(data.map((p: any) => ({
+            id: String(p.id),
+            name: p.name,
+            description: p.description,
+            price: p.price,
+            category: typeof p.category === 'object' ? p.category.name : p.category,
+            stock: p.stock
+          })))
+        }
+      } catch (e) {
+        console.error('Failed to load products API', e)
+        // Fallback dummy
+        setProducts([
+          { id: '1', name: 'Fresh Vegetables Mix', description: 'Organic fresh vegetables', price: 12.99, category: 'vegetables', stock: 50 }
+        ])
+      }
+
       setCategories([
-        { id: '1', name: 'vegetables' },
-        { id: '2', name: 'fruits' },
-        { id: '3', name: 'cakes' },
-        { id: '4', name: 'biscuits' }
+        { id: '1', name: 'Fresh Food' },
+        { id: '2', name: 'Bakery & Sweets' },
+        { id: '3', name: 'Dairy & Eggs' },
+        { id: '4', name: 'Pantry' },
+        { id: '5', name: 'Drinks' },
+        { id: '6', name: 'Snacks' }
       ])
+
+      const token = localStorage.getItem('authToken')
+      
+      try {
+        if (token) {
+          const ordersRes = await fetch('http://localhost:8080/api/orders/all', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
+          if (ordersRes.ok) {
+            const data = await ordersRes.json()
+            setOrders(data.map((o: any) => ({
+              id: o.orderNumber,
+              date: new Date(o.createdAt).toLocaleDateString(),
+              total: o.totalAmount,
+              status: o.status.toLowerCase(),
+              items: o.items.length,
+              customerName: o.user?.name || 'Guest',
+              email: o.user?.email || ''
+            })))
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load global orders', e)
+        const savedOrdersStr = localStorage.getItem('saved_orders')
+        if (savedOrdersStr) {
+          setOrders(JSON.parse(savedOrdersStr))
+        }
+      }
+
       setLoading(false)
-    }, 500)
+    }
+
+    loadAdminData()
   }, [authState])
 
   if (authState?.user?.role !== 'admin') {
@@ -82,21 +143,70 @@ export default function AdminPage() {
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    const newProduct: AdminProduct = {
-      id: Date.now().toString(),
-      name: formData.name,
-      description: formData.description,
-      price: parseFloat(formData.price),
-      category: formData.category,
-      stock: parseInt(formData.stock)
+    try {
+      const token = localStorage.getItem('authToken')
+      const targetCategory = categories.find(c => c.name === formData.category)
+      const categoryId = targetCategory ? targetCategory.id : '1'
+
+      const payload = {
+        name: formData.name,
+        description: formData.description,
+        price: parseFloat(formData.price),
+        stock: parseInt(formData.stock),
+        imageUrl: '',
+        categoryId: categoryId
+      }
+
+      if (token) {
+        const res = await fetch('http://localhost:8080/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(payload)
+        })
+
+        if (!res.ok) throw new Error('Failed backend item addition')
+        const savedData = await res.json()
+        setProducts([...products, {
+          id: String(savedData.id),
+          name: savedData.name,
+          description: savedData.description,
+          price: savedData.price,
+          category: typeof savedData.category === 'object' ? savedData.category.name : savedData.category,
+          stock: savedData.stock
+        }])
+      } else {
+        throw new Error('No authorization token available')
+      }
+    } catch (e) {
+      console.error('Failed to post product to backend, applying optimistic UI fallback', e)
+      const newProduct: AdminProduct = {
+        id: Date.now().toString(),
+        name: formData.name,
+        description: formData.description,
+        price: parseFloat(formData.price),
+        category: formData.category,
+        stock: parseInt(formData.stock)
+      }
+      setProducts([...products, newProduct])
     }
 
-    setProducts([...products, newProduct])
     setFormData({ name: '', description: '', price: '', category: '', stock: '' })
     setShowProductForm(false)
   }
 
-  const handleDeleteProduct = (id: string) => {
+  const handleDeleteProduct = async (id: string) => {
+    try {
+      const token = localStorage.getItem('authToken')
+      if (token) {
+        await fetch(`http://localhost:8080/api/products/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+      }
+    } catch (e) {
+      console.error('Failed backend delete', e)
+    }
+    // Optimistic / clean-up state
     setProducts(products.filter(p => p.id !== id))
   }
 
@@ -126,24 +236,14 @@ export default function AdminPage() {
         {/* Tabs */}
         <div className="flex gap-4 mb-8 border-b border-slate-700">
           <button
-            onClick={() => setActiveTab('products')}
+            onClick={() => setActiveTab('catalog')}
             className={`px-4 py-2 font-semibold border-b-2 transition-colors ${
-              activeTab === 'products'
+              activeTab === 'catalog'
                 ? 'text-blue-400 border-blue-400'
                 : 'text-slate-400 border-transparent hover:text-white'
             }`}
           >
-            Products
-          </button>
-          <button
-            onClick={() => setActiveTab('categories')}
-            className={`px-4 py-2 font-semibold border-b-2 transition-colors ${
-              activeTab === 'categories'
-                ? 'text-blue-400 border-blue-400'
-                : 'text-slate-400 border-transparent hover:text-white'
-            }`}
-          >
-            Categories
+            Catalog
           </button>
           <button
             onClick={() => setActiveTab('orders')}
@@ -157,11 +257,11 @@ export default function AdminPage() {
           </button>
         </div>
 
-        {/* Products Tab */}
-        {activeTab === 'products' && (
+        {/* Catalog Tab */}
+        {activeTab === 'catalog' && (
           <div>
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-white">Products</h2>
+              <h2 className="text-2xl font-bold text-white">Catalog Management</h2>
               <Button
                 onClick={() => setShowProductForm(!showProductForm)}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
@@ -170,6 +270,22 @@ export default function AdminPage() {
                 Add Product
               </Button>
             </div>
+
+            <Card className="bg-slate-800 border-slate-700 p-6 mb-6">
+              <form onSubmit={(e) => {
+                const input = e.currentTarget.querySelector('input') as HTMLInputElement
+                handleAddCategory(e, input)
+              }} className="flex gap-2 max-w-md">
+                <Input
+                  type="text"
+                  placeholder="Create a new category..."
+                  className="bg-slate-700 border-slate-600 text-white flex-1"
+                />
+                <Button type="submit" className="bg-slate-600 hover:bg-slate-500 text-white">
+                  Add Category
+                </Button>
+              </form>
+            </Card>
 
             {showProductForm && (
               <Card className="bg-slate-800 border-slate-700 p-6 mb-6">
@@ -247,73 +363,69 @@ export default function AdminPage() {
               </Card>
             )}
 
-            <div className="space-y-3">
-              {products.map(product => (
-                <Card key={product.id} className="bg-slate-800 border-slate-700 p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <h3 className="text-white font-semibold">{product.name}</h3>
-                      <p className="text-slate-400 text-sm">{product.description}</p>
-                      <div className="flex gap-4 mt-2 text-sm text-slate-400">
-                        <span>Category: {product.category}</span>
-                        <span>Price: ${product.price.toFixed(2)}</span>
-                        <span>Stock: {product.stock}</span>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button variant="ghost" size="icon" className="hover:bg-slate-700">
-                        <Edit2 className="w-4 h-4 text-blue-400" />
-                      </Button>
-                      <Button
-                        onClick={() => handleDeleteProduct(product.id)}
-                        variant="ghost"
-                        size="icon"
-                        className="hover:bg-slate-700"
-                      >
-                        <Trash2 className="w-4 h-4 text-red-400" />
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
+            {/* Category Sub-Tabs */}
+            <div className="flex gap-3 overflow-x-auto pb-4 mb-6 scrollbar-hide">
+              <button
+                onClick={() => setActiveCategoryTab('All')}
+                className={`flex-shrink-0 px-4 py-2 rounded-full font-medium transition-colors ${
+                  activeCategoryTab === 'All'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                }`}
+              >
+                All Products
+              </button>
+              {categories.map(category => (
+                <button
+                  key={category.id}
+                  onClick={() => setActiveCategoryTab(category.name)}
+                  className={`flex-shrink-0 px-4 py-2 rounded-full font-medium transition-colors capitalize ${
+                    activeCategoryTab === category.name
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  }`}
+                >
+                  {category.name}
+                </button>
               ))}
             </div>
-          </div>
-        )}
 
-        {/* Categories Tab */}
-        {activeTab === 'categories' && (
-          <div>
-            <h2 className="text-2xl font-bold text-white mb-6">Categories</h2>
-            
-            <Card className="bg-slate-800 border-slate-700 p-6 mb-6">
-              <form onSubmit={(e) => {
-                const input = e.currentTarget.querySelector('input') as HTMLInputElement
-                handleAddCategory(e, input)
-              }} className="flex gap-2">
-                <Input
-                  type="text"
-                  placeholder="New category name"
-                  className="bg-slate-700 border-slate-600 text-white"
-                />
-                <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-                  Add Category
-                </Button>
-              </form>
-            </Card>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {categories.map(category => (
-                <Card key={category.id} className="bg-slate-800 border-slate-700 p-4 flex items-center justify-between">
-                  <p className="text-white font-semibold capitalize">{category.name}</p>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="hover:bg-slate-700"
-                  >
-                    <Trash2 className="w-4 h-4 text-red-400" />
-                  </Button>
-                </Card>
-              ))}
+            <div className="space-y-3">
+              {products
+                .filter(p => activeCategoryTab === 'All' || (p.category || 'Uncategorized') === activeCategoryTab)
+                .map(product => (
+                  <Card key={product.id} className="bg-slate-800 border-slate-700 p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h3 className="text-white font-semibold">{product.name}</h3>
+                        <p className="text-slate-400 text-sm">{product.description}</p>
+                        <div className="flex gap-4 mt-2 text-sm text-slate-400">
+                          <span>Category: <span className="capitalize">{product.category}</span></span>
+                          <span>Price: Rs. {product.price.toFixed(2)}</span>
+                          <span>Stock: {product.stock}</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="ghost" size="icon" className="hover:bg-slate-700">
+                          <Edit2 className="w-4 h-4 text-blue-400" />
+                        </Button>
+                        <Button
+                          onClick={() => handleDeleteProduct(product.id)}
+                          variant="ghost"
+                          size="icon"
+                          className="hover:bg-slate-700"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-400" />
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              {products.filter(p => activeCategoryTab === 'All' || (p.category || 'Uncategorized') === activeCategoryTab).length === 0 && (
+                <div className="text-center py-8 text-slate-400">
+                  No products found in this category.
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -322,9 +434,32 @@ export default function AdminPage() {
         {activeTab === 'orders' && (
           <div>
             <h2 className="text-2xl font-bold text-white mb-6">Recent Orders</h2>
-            <Card className="bg-slate-800 border-slate-700 p-6 text-center">
-              <p className="text-slate-400">Order management coming soon</p>
-            </Card>
+            {orders.length === 0 ? (
+              <Card className="bg-slate-800 border-slate-700 p-6 text-center">
+                <p className="text-slate-400">No recent orders found</p>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {orders.map(order => (
+                  <Card key={order.id} className="bg-slate-800 border-slate-700 p-6">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="text-white font-bold">{order.id}</h3>
+                        <p className="text-slate-400 text-sm">{order.date}</p>
+                        <p className="text-slate-300 mt-2"><strong>Customer:</strong> {order.customerName} ({order.email})</p>
+                        <p className="text-slate-300"><strong>Items:</strong> {order.items}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xl font-bold text-blue-400">Rs. {order.total.toFixed(2)}</p>
+                        <span className="inline-block mt-2 px-3 py-1 bg-yellow-500/10 text-yellow-400 rounded-full text-sm font-semibold capitalize">
+                          {order.status}
+                        </span>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

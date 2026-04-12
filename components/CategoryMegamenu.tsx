@@ -107,9 +107,11 @@ export default function CategoryMegamenu() {
                     <p className="text-xs font-bold text-red-600 uppercase tracking-wide">Featured Deal</p>
                     <p className="text-sm font-medium text-gray-900 mt-0.5">Up to 30% off {selectedCategory.name}</p>
                   </div>
-                  <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white rounded-full text-xs h-8">
-                    Claim Offer
-                  </Button>
+                  <Link href={`/?category=${encodeURIComponent(selectedCategory.name)}&deals=true`} onClick={() => setIsOpen(false)}>
+                    <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white rounded-full text-xs h-8 px-4">
+                      Claim Offer
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </div>

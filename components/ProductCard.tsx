@@ -5,7 +5,8 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Product } from '@/components/ProductCatalog'
 import { CartContext } from '@/contexts/CartContext'
-import { ShoppingCart } from 'lucide-react'
+import { WishlistContext } from '@/contexts/WishlistContext'
+import { ShoppingCart, Heart } from 'lucide-react'
 
 interface ProductCardProps {
   product: Product
@@ -13,9 +14,21 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const { addItem } = useContext(CartContext)
+  const { addItem: addWishlist, removeItem: removeWishlist, isPinned } = useContext(WishlistContext)
+  
   const [quantity, setQuantity] = useState(1)
   const [isAdding, setIsAdding] = useState(false)
   const [added, setAdded] = useState(false)
+
+  const pinned = isPinned(String(product.id))
+
+  const handleToggleWishlist = () => {
+    if (pinned) {
+      removeWishlist(String(product.id))
+    } else {
+      addWishlist(product)
+    }
+  }
 
   const handleAddToCart = async () => {
     setIsAdding(true)
@@ -45,6 +58,12 @@ export default function ProductCard({ product }: ProductCardProps) {
       
       {/* Image Container */}
       <div className="relative h-48 w-full bg-white mb-2 overflow-hidden flex-shrink-0">
+        <button 
+          onClick={(e) => { e.preventDefault(); handleToggleWishlist() }}
+          className="absolute top-2 right-2 z-10 p-2 rounded-full bg-white/80 hover:bg-white shadow-sm transition-colors text-gray-400 hover:text-red-500"
+        >
+          <Heart className={`w-5 h-5 transition-colors ${pinned ? 'fill-red-500 text-red-500' : ''}`} />
+        </button>
         {imageUrl ? (
           <Image
             src={imageUrl}
@@ -117,6 +136,13 @@ export default function ProductCard({ product }: ProductCardProps) {
               >
                 {isAdding ? 'Adding...' : added ? 'Added ✓' : 'Add to cart'}
               </Button>
+              <button
+                onClick={(e) => { e.preventDefault(); handleToggleWishlist() }}
+                className="w-full py-1 text-center text-xs font-bold text-gray-400 hover:text-red-500 transition-colors flex items-center justify-center gap-1.5 mt-0.5"
+              >
+                <Heart className={`w-3.5 h-3.5 ${pinned ? 'fill-red-500 text-red-500' : ''}`} />
+                {pinned ? 'Saved to List' : 'Save to List'}
+              </button>
             </div>
           )}
         </div>

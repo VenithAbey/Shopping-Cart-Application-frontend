@@ -73,8 +73,44 @@ export default function CheckoutPage() {
         status: 'pending'
       }
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Build Backend Payload
+      const orderPayload = {
+        shippingAddress: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}`,
+        items: items.map(i => ({ productId: Number(i.id), quantity: i.quantity }))
+      }
+
+      const token = localStorage.getItem('authToken')
+      
+      if (token && user) {
+        // Post directly to SQL Database for Authenticated Users
+        const res = await fetch('http://localhost:8080/api/orders', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(orderPayload)
+        })
+        if (!res.ok) throw new Error('Order placement failed with Backend server')
+      } else {
+        // Fallback simulate API call for Guests (who have no database ID)
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
+        const newOrderInfo = {
+          id: `ORD-${Date.now().toString().slice(-6)}`,
+          date: new Date().toLocaleDateString(),
+          total: total * 1.1,
+          status: 'pending',
+          items: items.length,
+          customerName: `${formData.firstName} ${formData.lastName}`.trim() || formData.email || 'Guest',
+          email: formData.email,
+          fullItems: items
+        }
+
+        const existingOrdersStr = localStorage.getItem('saved_orders')
+        const existingOrders = existingOrdersStr ? JSON.parse(existingOrdersStr) : []
+        localStorage.setItem('saved_orders', JSON.stringify([newOrderInfo, ...existingOrders]))
+      }
 
       // Natively clear the global cart context
       await clearCart()

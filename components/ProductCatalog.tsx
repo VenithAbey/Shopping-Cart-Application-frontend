@@ -64,6 +64,8 @@ function ProductCatalogInner() {
     return () => clearTimeout(debounce)
   }, [fetchProducts])
 
+  const isDealsMode = searchParams.get('deals') === 'true'
+
   // Client-side filtering ensures instant UI updates when switching tabs.
   let filtered = categoryParam === 'All'
     ? products
@@ -75,6 +77,14 @@ function ProductCatalogInner() {
       p.name.toLowerCase().includes(subcategoryParam.toLowerCase()) || 
       p.description.toLowerCase().includes(subcategoryParam.toLowerCase())
     )
+  }
+
+  if (isDealsMode) {
+    filtered = filtered.map(p => ({
+      ...p,
+      price: p.price * 0.85, // 15% automatic discount
+      description: `🔥 DEAL ${p.description}`
+    }))
   }
 
   const setCategory = (cat: string) => {
@@ -93,8 +103,19 @@ function ProductCatalogInner() {
     <div className="max-w-[1400px] mx-auto w-full px-4 py-8 md:py-12">
       {/* Header */}
       <div className="mb-8">
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 tracking-tight">Helping you find great value</h2>
-        <p className="text-gray-600 text-[15px]">Browse our selection of quality products at great prices</p>
+        <div className="flex items-center gap-4 mb-2">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
+            {isDealsMode ? "💥 Today's Special Deals" : "Helping you find great value"}
+          </h2>
+          {isDealsMode && (
+             <span className="px-3 py-1 bg-red-100 text-red-700 font-bold text-xs uppercase tracking-wider rounded-lg border border-red-200">
+               15% OFF ALL ITEMS
+             </span>
+          )}
+        </div>
+        <p className="text-gray-600 text-[15px]">
+          {isDealsMode ? "Don't miss out on these exclusive massive price drops!" : "Browse our selection of quality products at great prices"}
+        </p>
       </div>
 
       {/* Pill Tabs for Categories */}

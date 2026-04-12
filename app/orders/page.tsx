@@ -7,26 +7,60 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 
+import { AuthContext } from '@/contexts/AuthContext'
+import { useContext } from 'react'
+
 interface Order {
   id: string
   date: string
   total: number
   status: 'pending' | 'completed' | 'shipped'
   items: number
+  customerName?: string
+  fullItems?: any[]
 }
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const authState = useContext(AuthContext)
 
   useEffect(() => {
-    // In a real application, fetch orders from API here.
-    // Display blank orders until real server data is wired up.
-    setTimeout(() => {
-      setOrders([])
-      setLoading(false)
-    }, 500)
-  }, [])
+    const fetchOrders = async () => {
+      try {
+        const token = localStorage.getItem('authToken')
+        if (token && authState?.user) {
+          const res = await fetch('http://localhost:8080/api/orders', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
+          if (res.ok) {
+            const data = await res.json()
+            const mappedOrders = data.map((o: any) => ({
+              id: o.orderNumber,
+              date: new Date(o.createdAt).toLocaleDateString(),
+              total: o.totalAmount,
+              status: o.status.toLowerCase(),
+              items: o.items.length,
+              customerName: o.user?.name,
+              fullItems: o.items
+            }))
+            setOrders(mappedOrders)
+            return
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch from backend', err)
+      }
+
+      // Guest Fallback
+      const savedOrdersStr = localStorage.getItem('saved_orders')
+      if (savedOrdersStr) {
+        setOrders(JSON.parse(savedOrdersStr))
+      }
+    }
+
+    fetchOrders().finally(() => setLoading(false))
+  }, [authState])
 
   const getStatusColor = (status: string) => {
     switch (status) {

@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useContext } from 'react'
 import { ChevronLeft, ChevronRight, Pause, Play, BookOpen, Tag, ShoppingBag, PlusSquare, ClipboardList, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { AuthContext } from '@/contexts/AuthContext'
 
 const slides = [
   {
@@ -33,15 +34,16 @@ const slides = [
 ]
 
 const quickLinks = [
-  { name: 'Weekly Catalogue', icon: BookOpen, color: 'text-green-600', isNew: true },
-  { name: 'All Specials & Offers', icon: Tag, color: 'text-yellow-500' },
-  { name: 'Ways to Shop', icon: ShoppingBag, color: 'text-green-700' },
-  { name: 'Healthy & Organic', icon: PlusSquare, color: 'text-green-800' },
-  { name: 'Plan with Lists', icon: ClipboardList, color: 'text-gray-600' },
-  { name: 'Trending Products', icon: TrendingUp, color: 'text-red-500' },
+  { name: 'Weekly Catalogue', icon: BookOpen, color: 'text-green-600', isNew: true, href: '/?deals=true' },
+  { name: 'All Specials & Offers', icon: Tag, color: 'text-yellow-500', href: '/?deals=true' },
+  { name: 'Ways to Shop', icon: ShoppingBag, color: 'text-green-700', action: 'openWaysToShop' },
+  { name: 'Healthy & Organic', icon: PlusSquare, color: 'text-green-800', href: '/?category=Fresh%20Food' },
+  { name: 'Plan with Lists', icon: ClipboardList, color: 'text-gray-600', action: 'openWishlist' },
+  { name: 'Trending Products', icon: TrendingUp, color: 'text-red-500', href: '/?category=Bakery%20%26%20Sweets' },
 ]
 
 export default function HeroBanner() {
+  const authState = useContext(AuthContext)
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
 
@@ -129,21 +131,53 @@ export default function HeroBanner() {
         <div className="w-full lg:w-[320px] xl:w-[380px] flex flex-col h-[450px]">
           {/* Header block strictly sized */}
           <div className="shrink-0 mb-4 px-1">
-            <h2 className="text-xl font-extrabold text-gray-900 mb-0.5 tracking-tight">Welcome to ShopCart</h2>
-            <p className="text-[13px] text-gray-500 mb-1">Get the most out of your shop</p>
-            <Link href="#" className="text-sm font-bold text-red-600 hover:text-red-700 underline decoration-red-600/30 underline-offset-4 transition-colors">
-              Log in or sign up
-            </Link>
+            <h2 className="text-xl font-extrabold text-gray-900 mb-0.5 tracking-tight">
+              {authState?.user ? `Welcome back, ${authState.user.name}` : 'Welcome to ShopCart'}
+            </h2>
+            <p className="text-[13px] text-gray-500 mb-1">
+              {authState?.user ? 'Ready to pick up where you left off?' : 'Get the most out of your shop'}
+            </p>
+            {authState?.user ? (
+              <span className="text-sm font-bold text-green-600">
+                You are logged in
+              </span>
+            ) : (
+              <button 
+                onClick={(e) => {
+                  e.preventDefault()
+                  window.dispatchEvent(new Event('openLoginModal'))
+                }}
+                className="text-sm font-bold text-red-600 hover:text-red-700 underline decoration-red-600/30 underline-offset-4 transition-colors"
+               >
+                Log in or sign up
+              </button>
+            )}
           </div>
 
           {/* Links block filling remaining height evenly */}
           <div className="flex flex-col flex-1 gap-2.5">
             {quickLinks.map((link, index) => {
               const Icon = link.icon
-              return (
+              return link.action ? (
+                <button
+                  key={index}
+                  onClick={() => window.dispatchEvent(new Event(link.action))}
+                  className="flex-1 flex items-center justify-between px-5 md:px-4 xl:px-5 rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200 group bg-white hover:-translate-y-0.5 text-left"
+                >
+                  <div className="flex flex-col justify-center">
+                    {link.isNew && <span className="text-[10px] uppercase font-bold text-red-500 leading-none mb-1 tracking-wider">New</span>}
+                    <span className="text-[13px] xl:text-sm font-semibold text-gray-700 group-hover:text-red-600 transition-colors">
+                      {link.name}
+                    </span>
+                  </div>
+                  <div className={`flex items-center justify-center p-2 rounded-full bg-gray-50 group-hover:bg-red-50 transition-colors ${link.color} group-hover:text-red-600`}>
+                    <Icon className="w-4 h-4 xl:w-5 xl:h-5" />
+                  </div>
+                </button>
+              ) : (
                 <Link 
                   key={index}
-                  href="#"
+                  href={link.href || '#'}
                   className="flex-1 flex items-center justify-between px-5 md:px-4 xl:px-5 rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200 group bg-white hover:-translate-y-0.5"
                 >
                   <div className="flex flex-col justify-center">
