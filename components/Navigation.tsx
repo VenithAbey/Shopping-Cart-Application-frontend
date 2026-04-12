@@ -2,6 +2,7 @@
 
 import { useState, useContext, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { AuthContext } from '@/contexts/AuthContext'
@@ -18,9 +19,18 @@ export default function Navigation() {
   const [tempAddress, setTempAddress] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
 
+  const [isAdmin, setIsAdmin] = useState(false)
+
   useEffect(() => {
     const saved = localStorage.getItem('deliveryAddress')
     if (saved) setDeliveryAddress(saved)
+
+    // Check if admin session is active
+    const adminToken = localStorage.getItem('adminToken')
+    const adminUser = localStorage.getItem('adminUser')
+    if (adminToken && adminUser) {
+      try { setIsAdmin(JSON.parse(adminUser).role === 'admin') } catch {}
+    }
     
     const handleOpenLogin = () => setShowLoginModal(true)
     window.addEventListener('openLoginModal', handleOpenLogin)
@@ -37,9 +47,20 @@ export default function Navigation() {
 
   const authState = useContext(AuthContext)
   const cartState = useContext(CartContext)
+  const router = useRouter()
 
   const handleLogout = () => {
     authState.logout()
+  }
+
+  const handleSearch = (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+    const q = searchQuery.trim()
+    if (q) {
+      router.push(`/?search=${encodeURIComponent(q)}`)
+    } else {
+      router.push('/')
+    }
   }
 
   const cartCount = cartState?.items?.length || 0
@@ -55,8 +76,8 @@ export default function Navigation() {
           </div>
           <div className="hidden md:flex items-center gap-6">
             <Link href="/orders" className="hover:opacity-80">My Orders</Link>
-            {authState?.user?.role === 'admin' && (
-              <Link href="/admin" className="hover:opacity-80">Admin</Link>
+            {isAdmin && (
+              <Link href="/admin/dashboard" className="hover:opacity-80 font-bold bg-white/20 px-3 py-1 rounded-full text-xs">⚙️ Admin Dashboard</Link>
             )}
           </div>
         </div>
@@ -74,7 +95,7 @@ export default function Navigation() {
             {/* Categories - Hidden on mobile */}
             <div className="hidden lg:flex items-center gap-6">
               <CategoryMegamenu />
-              <Link href="/" className="text-gray-700 font-medium hover:text-red-600 transition-colors">
+              <Link href="/?deals=true" className="text-gray-700 font-medium hover:text-red-600 transition-colors">
                 Deals
               </Link>
               <button 
@@ -87,7 +108,7 @@ export default function Navigation() {
             </div>
 
             {/* Search Bar */}
-            <div className="hidden md:flex flex-1 max-w-md">
+            <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-md">
               <div className="relative w-full">
                 <Input
                   type="text"
@@ -96,9 +117,11 @@ export default function Navigation() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
-                <Search className="absolute right-3 top-3 w-5 h-5 text-gray-400" />
+                <button type="submit" className="absolute right-3 top-2.5">
+                  <Search className="w-5 h-5 text-gray-400 hover:text-red-600 transition-colors" />
+                </button>
               </div>
-            </div>
+            </form>
 
             {/* Right Section */}
             <div className="hidden md:flex items-center gap-4">

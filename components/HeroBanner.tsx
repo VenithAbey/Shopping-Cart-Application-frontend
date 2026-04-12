@@ -13,6 +13,7 @@ const slides = [
     subtitle: 'Farm fresh veggies, ripe fruits, and organic options to keep you healthy.',
     bgColor: 'bg-green-700',
     buttonText: 'Shop Fresh',
+    href: '/?category=Fresh%20Food',
     image: 'https://images.unsplash.com/photo-1610348725531-843dff563e2c?q=80&w=800&auto=format&fit=crop'
   },
   {
@@ -21,6 +22,7 @@ const slides = [
     subtitle: 'Premium cuts, fresh buns, and everything you need for the perfect outdoor grill.',
     bgColor: 'bg-red-700',
     buttonText: 'View Specials',
+    href: '/?deals=true',
     image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=800&auto=format&fit=crop'
   },
   {
@@ -29,6 +31,7 @@ const slides = [
     subtitle: 'Buy in bulk and save on everyday essentials for your household.',
     bgColor: 'bg-blue-700',
     buttonText: 'Shop Pantry',
+    href: '/?category=Pantry',
     image: 'https://images.unsplash.com/photo-1584473457406-6240486418e9?q=80&w=800&auto=format&fit=crop'
   }
 ]
@@ -81,9 +84,12 @@ export default function HeroBanner() {
                     <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold mb-4 xl:mb-6 leading-tight tracking-tight">{slide.title}</h2>
                     <p className="text-base xl:text-lg text-white/90 mb-8 max-w-sm leading-relaxed">{slide.subtitle}</p>
                     <div>
-                      <button className="bg-white text-gray-900 px-6 xl:px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors shadow-sm">
+                      <Link
+                        href={slide.href}
+                        className="inline-block bg-white text-gray-900 px-6 xl:px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors shadow-sm"
+                      >
                         {slide.buttonText}
-                      </button>
+                      </Link>
                     </div>
                   </div>
                   

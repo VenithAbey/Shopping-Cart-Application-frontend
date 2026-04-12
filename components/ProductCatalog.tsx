@@ -31,11 +31,17 @@ function ProductCatalogInner() {
   const router = useRouter()
   const categoryParam = searchParams.get('category') || 'All'
   const subcategoryParam = searchParams.get('subcategory') || `All ${categoryParam}`
-  
+  const urlSearchTerm = searchParams.get('search') || ''
+
   const [products, setProducts] = useState<Product[]>([])
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchTerm, setSearchTerm] = useState(urlSearchTerm)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+
+  // Sync local search state when URL param changes
+  useEffect(() => {
+    setSearchTerm(urlSearchTerm)
+  }, [urlSearchTerm])
 
   const fetchProducts = useCallback(async () => {
     setLoading(true)

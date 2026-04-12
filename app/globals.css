@@ -123,3 +123,8 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Global pointer cursor on all interactive elements */
+button, a, [role="button"], label[for], select {
+  cursor: pointer;
+}
