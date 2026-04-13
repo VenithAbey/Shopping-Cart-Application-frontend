@@ -27,7 +27,8 @@ export default function AdminLoginPage() {
     e.preventDefault()
     setError(''); setSuccess(''); setLoading(true)
     try {
-      const res = await fetch('http://localhost:8080/api/auth/login', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
+      const res = await fetch(`${apiUrl}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: loginEmail, password: loginPassword })
@@ -52,7 +53,8 @@ export default function AdminLoginPage() {
     e.preventDefault()
     setError(''); setSuccess(''); setLoading(true)
     try {
-      const res = await fetch('http://localhost:8080/api/auth/admin-signup', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
+      const res = await fetch(`${apiUrl}/auth/admin-signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: signupName, email: signupEmail, password: signupPassword })

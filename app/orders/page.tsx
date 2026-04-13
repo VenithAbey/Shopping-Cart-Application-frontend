@@ -30,7 +30,8 @@ export default function OrdersPage() {
       try {
         const token = localStorage.getItem('authToken')
         if (token && authState?.user) {
-          const res = await fetch('http://localhost:8080/api/orders', {
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
+          const res = await fetch(`${apiUrl}/orders`, {
             headers: { 'Authorization': `Bearer ${token}` }
           })
           if (res.ok) {

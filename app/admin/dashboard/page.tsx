@@ -69,8 +69,9 @@ export default function AdminDashboard() {
   }, [])
 
   const loadData = async (token: string) => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
     try {
-      const prodRes = await fetch('http://localhost:8080/api/products')
+      const prodRes = await fetch(`${apiUrl}/products`)
       if (prodRes.ok) {
         const data = await prodRes.json()
         setProducts(data.map((p: any) => ({
@@ -81,7 +82,7 @@ export default function AdminDashboard() {
     } catch (e) { console.error('Products load failed', e) }
 
     try {
-      const catRes = await fetch('http://localhost:8080/api/categories')
+      const catRes = await fetch(`${apiUrl}/categories`)
       if (catRes.ok) {
         const data = await catRes.json()
         setCategories(data.map((c: any) => ({ id: String(c.id), name: c.name })))
@@ -89,7 +90,7 @@ export default function AdminDashboard() {
     } catch (e) { console.error('Categories load failed', e) }
 
     try {
-      const ordersRes = await fetch('http://localhost:8080/api/orders/all', {
+      const ordersRes = await fetch(`${apiUrl}/orders/all`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (ordersRes.ok) {
@@ -107,8 +108,9 @@ export default function AdminDashboard() {
 
   const loadUsers = async () => {
     const token = localStorage.getItem('adminToken')
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
     try {
-      const res = await fetch('http://localhost:8080/api/users/all', {
+      const res = await fetch(`${apiUrl}/users/all`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (res.ok) {
@@ -126,8 +128,9 @@ export default function AdminDashboard() {
     const token = localStorage.getItem('adminToken')
     const targetCategory = categories.find(c => c.name === formData.category)
     if (!targetCategory) { alert('Please select a valid category'); return }
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
     try {
-      const res = await fetch('http://localhost:8080/api/products', {
+      const res = await fetch(`${apiUrl}/products`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ name: formData.name, description: formData.description, price: parseFloat(formData.price), stock: parseInt(formData.stock), imageUrl: '', categoryId: Number(targetCategory.id) })
@@ -149,8 +152,9 @@ export default function AdminDashboard() {
 
   const handleDeleteProduct = async (id: string) => {
     const token = localStorage.getItem('adminToken')
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
     try {
-      await fetch(`http://localhost:8080/api/products/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } })
+      await fetch(`${apiUrl}/products/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } })
     } catch (e) { console.error('Delete failed', e) }
     setProducts(products.filter(p => p.id !== id))
   }
@@ -158,8 +162,9 @@ export default function AdminDashboard() {
   const handleEditProduct = async (id: string) => {
     const token = localStorage.getItem('adminToken')
     const targetCategory = categories.find(c => c.name === editForm.category)
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
     try {
-      const res = await fetch(`http://localhost:8080/api/products/${id}`, {
+      const res = await fetch(`${apiUrl}/products/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ name: editForm.name, description: editForm.description, price: parseFloat(editForm.price), stock: parseInt(editForm.stock), imageUrl: '', categoryId: targetCategory?.id || '1' })
@@ -176,8 +181,9 @@ export default function AdminDashboard() {
     if (!newPassword.trim() || !oldPassword.trim()) return
     const token = localStorage.getItem('adminToken')
     setPwError('')
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
     try {
-      const res = await fetch(`http://localhost:8080/api/users/${userId}/password`, {
+      const res = await fetch(`${apiUrl}/users/${userId}/password`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ oldPassword, password: newPassword })
@@ -192,8 +198,9 @@ export default function AdminDashboard() {
   const handleDeleteUser = async (userId: string) => {
     if (!confirm('Delete this user? This cannot be undone.')) return
     const token = localStorage.getItem('adminToken')
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
     try {
-      await fetch(`http://localhost:8080/api/users/${userId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } })
+      await fetch(`${apiUrl}/users/${userId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } })
       setUsers(users.filter(u => u.id !== userId))
     } catch (e) { console.error('Delete user failed', e) }
   }

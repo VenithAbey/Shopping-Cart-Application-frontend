@@ -60,7 +60,8 @@ export function AuthProvider({ children, onAuthChange }: {
   }, [onAuthChange])
 
   const login = useCallback(async (email: string, password: string) => {
-    const res = await fetch('http://localhost:8080/api/auth/login', {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
+    const res = await fetch(`${apiUrl}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -71,7 +72,8 @@ export function AuthProvider({ children, onAuthChange }: {
   }, [applyAuth])
 
   const signup = useCallback(async (name: string, email: string, password: string) => {
-    const res = await fetch('http://localhost:8080/api/auth/signup', {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
+    const res = await fetch(`${apiUrl}/auth/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password }),

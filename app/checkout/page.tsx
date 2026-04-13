@@ -83,7 +83,8 @@ export default function CheckoutPage() {
       
       if (token && user) {
         // Post directly to SQL Database for Authenticated Users
-        const res = await fetch('http://localhost:8080/api/orders', {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
+        const res = await fetch(`${apiUrl}/orders`, {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
