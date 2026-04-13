@@ -40,7 +40,7 @@ export default function AdminLoginPage() {
       }
       localStorage.setItem('adminToken', data.token)
       localStorage.setItem('adminUser', JSON.stringify(data.user))
-      router.push('/')
+      router.push('/admin/dashboard')
     } catch {
       setError('Could not connect to the server. Ensure the backend is running.')
     } finally {

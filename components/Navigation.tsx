@@ -19,18 +19,13 @@ export default function Navigation() {
   const [tempAddress, setTempAddress] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
 
-  const [isAdmin, setIsAdmin] = useState(false)
+
 
   useEffect(() => {
     const saved = localStorage.getItem('deliveryAddress')
     if (saved) setDeliveryAddress(saved)
 
-    // Check if admin session is active
-    const adminToken = localStorage.getItem('adminToken')
-    const adminUser = localStorage.getItem('adminUser')
-    if (adminToken && adminUser) {
-      try { setIsAdmin(JSON.parse(adminUser).role === 'admin') } catch {}
-    }
+
     
     const handleOpenLogin = () => setShowLoginModal(true)
     window.addEventListener('openLoginModal', handleOpenLogin)
@@ -76,9 +71,7 @@ export default function Navigation() {
           </div>
           <div className="hidden md:flex items-center gap-6">
             <Link href="/orders" className="hover:opacity-80">My Orders</Link>
-            {isAdmin && (
-              <Link href="/admin/dashboard" className="hover:opacity-80 font-bold bg-white/20 px-3 py-1 rounded-full text-xs">⚙️ Admin Dashboard</Link>
-            )}
+
           </div>
         </div>
       </div>
@@ -199,11 +192,7 @@ export default function Navigation() {
               </Link>
               {authState?.user ? (
                 <>
-                  {authState.user.role === 'admin' && (
-                    <Link href="/admin" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded">
-                      Admin
-                    </Link>
-                  )}
+
                   <Link href="/orders" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded">
                     My Orders
                   </Link>
