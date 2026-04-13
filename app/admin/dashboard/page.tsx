@@ -29,6 +29,7 @@ interface AdminOrder {
   items: number
   customerName: string
   email: string
+  fullItems?: any[]
 }
 
 interface AdminUser {
@@ -98,7 +99,8 @@ export default function AdminDashboard() {
         setOrders(data.map((o: any) => ({
           id: o.orderNumber, date: new Date(o.createdAt).toLocaleDateString(),
           total: o.totalAmount, status: o.status.toLowerCase(),
-          items: o.items.length, customerName: o.user?.name || 'Guest', email: o.user?.email || ''
+          items: o.items.length, customerName: o.user?.name || 'Guest', email: o.user?.email || '',
+          fullItems: o.items
         })))
       }
     } catch (e) { console.error('Orders load failed', e) }
@@ -374,6 +376,28 @@ export default function AdminDashboard() {
                         <span className="inline-block mt-2 px-3 py-1 bg-yellow-500/10 text-yellow-400 rounded-full text-sm font-semibold capitalize">{order.status}</span>
                       </div>
                     </div>
+
+                    {/* Order Items Breakdown */}
+                    {order.fullItems && order.fullItems.length > 0 && (
+                      <div className="mt-5 pt-4 border-t border-slate-700">
+                        <p className="text-sm font-semibold text-slate-300 mb-3">Purchased Items:</p>
+                        <div className="space-y-2">
+                          {order.fullItems.map((item: any, idx: number) => (
+                            <div key={idx} className="flex justify-between items-center text-sm bg-slate-700/30 p-2 rounded">
+                              <div className="flex items-center gap-3">
+                                <span className="w-6 h-6 bg-slate-700 rounded text-center text-blue-400 font-bold text-xs flex items-center justify-center">
+                                  {item.quantity}x
+                                </span>
+                                <span className="text-slate-300">{item.product?.name || 'Unknown item'}</span>
+                              </div>
+                              <span className="text-slate-400">
+                                Rs. {((item.product?.price || item.price || 0) * item.quantity).toFixed(2)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </Card>
                 ))}
               </div>
