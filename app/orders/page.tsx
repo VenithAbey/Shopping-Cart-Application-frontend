@@ -23,6 +23,7 @@ interface Order {
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null)
   const authState = useContext(AuthContext)
 
   useEffect(() => {
@@ -128,11 +129,44 @@ export default function OrdersPage() {
                       <p className="text-gray-500 text-sm mb-1">Total</p>
                       <p className="text-gray-900 font-semibold text-lg">Rs. {order.total.toFixed(2)}</p>
                     </div>
-                    <Button variant="outline" className="bg-white hover:bg-gray-50 text-gray-700 border-gray-300 mt-2 md:mt-0">
-                      View Details
+                    <Button 
+                      onClick={() => setExpandedOrderId(expandedOrderId === order.id ? null : order.id)}
+                      variant="outline" 
+                      className="bg-white hover:bg-gray-50 text-gray-700 border-gray-300 mt-2 md:mt-0"
+                    >
+                      {expandedOrderId === order.id ? 'Hide Details' : 'View Details'}
                     </Button>
                   </div>
                 </div>
+
+                {/* Expanded Details Section */}
+                {expandedOrderId === order.id && order.fullItems && order.fullItems.length > 0 && (
+                  <div className="mt-6 border-t border-gray-100 pt-4">
+                    <h4 className="text-sm font-semibold text-gray-900 mb-3">Order Items</h4>
+                    <div className="space-y-3">
+                      {order.fullItems.map((item: any, index: number) => (
+                        <div key={index} className="flex justify-between items-center text-sm">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
+                              {item.product?.imageUrl ? (
+                                <img src={item.product.imageUrl} alt={item.product.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-400">?</div>
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900">{item.product?.name || item.name}</p>
+                              <p className="text-gray-500 text-xs">Qty: {item.quantity}</p>
+                            </div>
+                          </div>
+                          <p className="font-semibold text-gray-900">
+                            Rs. {((item.product?.price || item.price || 0) * item.quantity).toFixed(2)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </Card>
             ))}
           </div>
