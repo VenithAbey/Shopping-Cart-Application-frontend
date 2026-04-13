@@ -55,9 +55,9 @@ export default function AdminDashboard() {
   const [newPassword, setNewPassword] = useState('')
   const [oldPassword, setOldPassword] = useState('')
   const [pwError, setPwError] = useState('')
-  const [formData, setFormData] = useState({ name: '', description: '', price: '', category: '', stock: '' })
+  const [formData, setFormData] = useState({ name: '', description: '', price: '', category: '', stock: '', imageUrl: '' })
   const [editingProductId, setEditingProductId] = useState<string | null>(null)
-  const [editForm, setEditForm] = useState({ name: '', description: '', price: '', category: '', stock: '' })
+  const [editForm, setEditForm] = useState({ name: '', description: '', price: '', category: '', stock: '', imageUrl: '' })
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken')
@@ -135,12 +135,12 @@ export default function AdminDashboard() {
       const res = await fetch(`${apiUrl}/products`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ name: formData.name, description: formData.description, price: parseFloat(formData.price), stock: parseInt(formData.stock), imageUrl: '', categoryId: Number(targetCategory.id) })
+        body: JSON.stringify({ name: formData.name, description: formData.description, price: parseFloat(formData.price), stock: parseInt(formData.stock), imageUrl: formData.imageUrl, categoryId: Number(targetCategory.id) })
       })
       if (res.ok) {
         const saved = await res.json()
         setProducts([...products, { id: String(saved.id), name: saved.name, description: saved.description, price: saved.price, category: typeof saved.category === 'object' ? saved.category.name : saved.category, stock: saved.stock }])
-        setFormData({ name: '', description: '', price: '', category: '', stock: '' })
+        setFormData({ name: '', description: '', price: '', category: '', stock: '', imageUrl: '' })
         setShowProductForm(false)
       } else {
         const err = await res.json()
@@ -169,7 +169,7 @@ export default function AdminDashboard() {
       const res = await fetch(`${apiUrl}/products/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ name: editForm.name, description: editForm.description, price: parseFloat(editForm.price), stock: parseInt(editForm.stock), imageUrl: '', categoryId: targetCategory?.id || '1' })
+        body: JSON.stringify({ name: editForm.name, description: editForm.description, price: parseFloat(editForm.price), stock: parseInt(editForm.stock), imageUrl: editForm.imageUrl, categoryId: targetCategory?.id || '1' })
       })
       if (res.ok) {
         setProducts(products.map(p => p.id === id ? { ...p, ...editForm, price: parseFloat(editForm.price), stock: parseInt(editForm.stock), category: editForm.category } : p))
@@ -286,6 +286,10 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                   <div>
+                    <label className="text-sm font-medium text-slate-300 mb-1 block">Image URL (Optional)</label>
+                    <Input type="text" placeholder="https://example.com/image.jpg" value={formData.imageUrl} onChange={e => setFormData({ ...formData, imageUrl: e.target.value })} className="bg-slate-700 border-slate-600 text-white" />
+                  </div>
+                  <div>
                     <label className="text-sm font-medium text-slate-300 mb-1 block">Description</label>
                     <textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="w-full bg-slate-700 border border-slate-600 text-white rounded p-2" rows={3} />
                   </div>
@@ -322,6 +326,8 @@ export default function AdminDashboard() {
                         <div><label className="text-xs text-slate-400 mb-1 block">Stock</label>
                           <Input type="number" value={editForm.stock} onChange={e => setEditForm({ ...editForm, stock: e.target.value })} className="bg-slate-700 border-slate-600 text-white h-8 text-sm" /></div>
                       </div>
+                      <div><label className="text-xs text-slate-400 mb-1 block">Image URL</label>
+                        <Input value={editForm.imageUrl} onChange={e => setEditForm({ ...editForm, imageUrl: e.target.value })} className="bg-slate-700 border-slate-600 text-white h-8 text-sm" placeholder="https://..." /></div>
                       <div><label className="text-xs text-slate-400 mb-1 block">Description</label>
                         <textarea value={editForm.description} onChange={e => setEditForm({ ...editForm, description: e.target.value })} className="w-full bg-slate-700 border border-slate-600 text-white rounded p-2 text-sm" rows={2} /></div>
                       <div className="flex gap-2">
@@ -341,7 +347,7 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <Button variant="ghost" size="icon" className="hover:bg-slate-700" onClick={() => { setEditingProductId(product.id); setEditForm({ name: product.name, description: product.description, price: String(product.price), category: product.category, stock: String(product.stock) }) }}>
+                        <Button variant="ghost" size="icon" className="hover:bg-slate-700" onClick={() => { setEditingProductId(product.id); setEditForm({ name: product.name, description: product.description, price: String(product.price), category: product.category, stock: String(product.stock), imageUrl: (product as any).imageUrl || '' }) }}>
                           <Edit2 className="w-4 h-4 text-blue-400" />
                         </Button>
                         <Button onClick={() => handleDeleteProduct(product.id)} variant="ghost" size="icon" className="hover:bg-slate-700"><Trash2 className="w-4 h-4 text-red-400" /></Button>
