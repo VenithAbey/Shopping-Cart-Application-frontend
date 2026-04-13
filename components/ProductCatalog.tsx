@@ -51,7 +51,8 @@ function ProductCatalogInner() {
       if (categoryParam !== 'All') params.append('categoryName', categoryParam)
       if (searchTerm.trim()) params.append('search', searchTerm.trim())
 
-      const url = `/api/products${params.toString() ? '?' + params.toString() : ''}`
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
+      const url = `${apiUrl}/products${params.toString() ? '?' + params.toString() : ''}`
       const res = await fetch(url)
 
       if (!res.ok) throw new Error('Failed to fetch products')
