@@ -14,6 +14,7 @@ interface AdminProduct {
   price: number
   category: string
   stock: number
+  imageUrl: string
 }
 
 interface Category {
@@ -83,7 +84,8 @@ export default function AdminDashboard() {
         const data = await prodRes.json()
         setProducts(data.map((p: any) => ({
           id: String(p.id), name: p.name, description: p.description,
-          price: p.price, category: typeof p.category === 'object' ? p.category.name : p.category, stock: p.stock
+          price: p.price, category: typeof p.category === 'object' ? p.category.name : p.category,
+          stock: p.stock, imageUrl: p.imageUrl || ''
         })))
       }
     } catch (e) { console.error('Products load failed', e) }
@@ -178,7 +180,7 @@ export default function AdminDashboard() {
         body: JSON.stringify({ name: editForm.name, description: editForm.description, price: parseFloat(editForm.price), stock: parseInt(editForm.stock), imageUrl: editForm.imageUrl, categoryId: targetCategory?.id || '1' })
       })
       if (res.ok) {
-        setProducts(products.map(p => p.id === id ? { ...p, ...editForm, price: parseFloat(editForm.price), stock: parseInt(editForm.stock), category: editForm.category } : p))
+        setProducts(products.map(p => p.id === id ? { ...p, ...editForm, price: parseFloat(editForm.price), stock: parseInt(editForm.stock), category: editForm.category, imageUrl: editForm.imageUrl } : p))
         setEditingProductId(null)
       }
     } catch (e) { console.error('Edit product failed', e) }
@@ -378,7 +380,7 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <Button variant="ghost" size="icon" className="hover:bg-slate-700" onClick={() => { setEditingProductId(product.id); setEditForm({ name: product.name, description: product.description, price: String(product.price), category: product.category, stock: String(product.stock), imageUrl: (product as any).imageUrl || '' }) }}>
+                        <Button variant="ghost" size="icon" className="hover:bg-slate-700" onClick={() => { setEditingProductId(product.id); setEditForm({ name: product.name, description: product.description, price: String(product.price), category: product.category, stock: String(product.stock), imageUrl: product.imageUrl || '' }) }}>
                           <Edit2 className="w-4 h-4 text-blue-400" />
                         </Button>
                         <Button onClick={() => handleDeleteProduct(product.id)} variant="ghost" size="icon" className="hover:bg-slate-700"><Trash2 className="w-4 h-4 text-red-400" /></Button>
