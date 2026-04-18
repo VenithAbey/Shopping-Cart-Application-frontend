@@ -123,14 +123,7 @@ export default function LoginModal({ onClose }: { onClose: () => void }) {
           </form>
 
 
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2"
-            >
-              {isLoading ? 'Processing...' : (isSignUp ? 'Create Account' : 'Sign In')}
-            </Button>
-          </form>
+
 
           {/* Divider */}
           <div className="relative mb-6">
