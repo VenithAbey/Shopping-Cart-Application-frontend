@@ -71,7 +71,7 @@ export default function LoginModal({ onClose }: { onClose: () => void }) {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4 mb-6">
+          <form onSubmit={handleSubmit} autoComplete="off" className="space-y-4 mb-6">
             {isSignUp && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
@@ -94,7 +94,7 @@ export default function LoginModal({ onClose }: { onClose: () => void }) {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="you@example.com"
+                autoComplete="off"
                 required
                 className="w-full"
               />
@@ -107,7 +107,7 @@ export default function LoginModal({ onClose }: { onClose: () => void }) {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="••••••••"
+                autoComplete="new-password"
                 required
                 className="w-full"
               />

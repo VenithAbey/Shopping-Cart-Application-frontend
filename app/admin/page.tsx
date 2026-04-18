@@ -111,16 +111,16 @@ export default function AdminLoginPage() {
                   <label className="text-sm font-medium text-slate-300 mb-1.5 block">Email address</label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-                    <input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="admin@shopcart.com" required
-                      className="w-full bg-slate-700/50 border border-slate-600 text-white rounded-xl pl-10 pr-4 py-2.5 text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-colors" />
+                    <input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required autoComplete="off"
+                      className="w-full bg-slate-700/50 border border-slate-600 text-white rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-colors" />
                   </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-slate-300 mb-1.5 block">Password</label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-                    <input type={showLoginPw ? 'text' : 'password'} value={loginPassword} onChange={e => setLoginPassword(e.target.value)} placeholder="••••••••" required
-                      className="w-full bg-slate-700/50 border border-slate-600 text-white rounded-xl pl-10 pr-10 py-2.5 text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-colors" />
+                    <input type={showLoginPw ? 'text' : 'password'} value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required autoComplete="new-password"
+                      className="w-full bg-slate-700/50 border border-slate-600 text-white rounded-xl pl-10 pr-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-colors" />
                     <button type="button" onClick={() => setShowLoginPw(!showLoginPw)} className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-200">
                       {showLoginPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -141,24 +141,24 @@ export default function AdminLoginPage() {
                   <label className="text-sm font-medium text-slate-300 mb-1.5 block">Full Name</label>
                   <div className="relative">
                     <User className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-                    <input type="text" value={signupName} onChange={e => setSignupName(e.target.value)} placeholder="Admin Name" required
-                      className="w-full bg-slate-700/50 border border-slate-600 text-white rounded-xl pl-10 pr-4 py-2.5 text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-colors" />
+                    <input type="text" value={signupName} onChange={e => setSignupName(e.target.value)} placeholder="Admin Name" required autoComplete="off"
+                      className="w-full bg-slate-700/50 border border-slate-600 text-white rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-colors" />
                   </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-slate-300 mb-1.5 block">Email address</label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-                    <input type="email" value={signupEmail} onChange={e => setSignupEmail(e.target.value)} placeholder="admin@shopcart.com" required
-                      className="w-full bg-slate-700/50 border border-slate-600 text-white rounded-xl pl-10 pr-4 py-2.5 text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-colors" />
+                    <input type="email" value={signupEmail} onChange={e => setSignupEmail(e.target.value)} required autoComplete="off"
+                      className="w-full bg-slate-700/50 border border-slate-600 text-white rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-colors" />
                   </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-slate-300 mb-1.5 block">Password</label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-                    <input type={showSignupPw ? 'text' : 'password'} value={signupPassword} onChange={e => setSignupPassword(e.target.value)} placeholder="Min. 8 characters" required minLength={6}
-                      className="w-full bg-slate-700/50 border border-slate-600 text-white rounded-xl pl-10 pr-10 py-2.5 text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-colors" />
+                    <input type={showSignupPw ? 'text' : 'password'} value={signupPassword} onChange={e => setSignupPassword(e.target.value)} required minLength={6} autoComplete="new-password"
+                      className="w-full bg-slate-700/50 border border-slate-600 text-white rounded-xl pl-10 pr-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-colors" />
                     <button type="button" onClick={() => setShowSignupPw(!showSignupPw)} className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-200">
                       {showSignupPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
