@@ -6,9 +6,14 @@ import { Shield, Eye, EyeOff, Lock, Mail, User } from 'lucide-react'
 
 export default function AdminLoginPage() {
   const router = useRouter()
+  // Login state
+  const [loginEmail, setLoginEmail] = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
+  const [showLoginPw, setShowLoginPw] = useState(false)
+
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
-  const [loading, setLoading] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
