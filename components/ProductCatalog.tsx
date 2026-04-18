@@ -96,14 +96,14 @@ function ProductCatalogInner() {
 
   const setCategory = (cat: string) => {
     if (cat === 'All') {
-      router.push('/')
+      router.push('/', { scroll: false })
     } else {
-      router.push(`/?category=${encodeURIComponent(cat)}`)
+      router.push(`/?category=${encodeURIComponent(cat)}`, { scroll: false })
     }
   }
 
   const setSubcategory = (sub: string) => {
-    router.push(`/?category=${encodeURIComponent(categoryParam)}&subcategory=${encodeURIComponent(sub)}`)
+    router.push(`/?category=${encodeURIComponent(categoryParam)}&subcategory=${encodeURIComponent(sub)}`, { scroll: false })
   }
 
   return (

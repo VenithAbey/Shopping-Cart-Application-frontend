@@ -14,7 +14,7 @@ const slides = [
     bgColor: 'bg-green-700',
     buttonText: 'Shop Fresh',
     href: '/?category=Fresh%20Food',
-    image: 'https://images.unsplash.com/photo-1610348725531-843dff563e2c?q=80&w=800&auto=format&fit=crop'
+    image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=800&auto=format&fit=crop'
   },
   {
     id: 2,
