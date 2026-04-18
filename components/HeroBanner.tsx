@@ -80,13 +80,13 @@ export default function HeroBanner() {
               {slides.map((slide) => (
                 <div key={slide.id} className="min-w-full h-full flex flex-col md:flex-row">
                   {/* Left Text Box */}
-                  <div className={`${slide.bgColor} text-white w-full md:w-[55%] p-10 xl:p-14 flex flex-col justify-center`}>
-                    <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold mb-4 xl:mb-6 leading-tight tracking-tight">{slide.title}</h2>
-                    <p className="text-base xl:text-lg text-white/90 mb-8 max-w-sm leading-relaxed">{slide.subtitle}</p>
-                    <div>
+                  <div className={`${slide.bgColor} text-white w-full md:w-[55%] p-8 xl:p-12 flex flex-col justify-center overflow-hidden`}>
+                    <h2 className="text-2xl lg:text-3xl xl:text-4xl font-bold mb-3 xl:mb-4 leading-tight tracking-tight">{slide.title}</h2>
+                    <p className="text-sm xl:text-base text-white/90 mb-6 max-w-sm leading-relaxed">{slide.subtitle}</p>
+                    <div className="shrink-0">
                       <Link
                         href={slide.href}
-                        className="inline-block bg-white text-gray-900 px-6 xl:px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors shadow-sm"
+                        className="inline-block bg-white text-gray-900 px-6 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors shadow-sm"
                       >
                         {slide.buttonText}
                       </Link>
