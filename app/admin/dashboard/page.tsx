@@ -59,6 +59,7 @@ export default function AdminDashboard() {
   const [formData, setFormData] = useState({ name: '', description: '', price: '', category: '', stock: '', imageUrl: '' })
   const [editingProductId, setEditingProductId] = useState<string | null>(null)
   const [editForm, setEditForm] = useState({ name: '', description: '', price: '', category: '', stock: '', imageUrl: '' })
+  const [productSearch, setProductSearch] = useState('')
   
   // Admin creation state
   const [showAddAdmin, setShowAddAdmin] = useState(false)
@@ -287,11 +288,25 @@ export default function AdminDashboard() {
         {/* Catalog Tab */}
         {activeTab === 'catalog' && (
           <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
               <h2 className="text-2xl font-bold text-white">Catalog Management</h2>
-              <Button onClick={() => setShowProductForm(!showProductForm)} className="bg-blue-600 hover:bg-blue-700 text-white">
-                <Plus className="w-4 h-4 mr-2" /> Add Product
-              </Button>
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="relative flex-1 sm:w-64">
+                  <input
+                    type="text"
+                    placeholder="Search products..."
+                    value={productSearch}
+                    onChange={e => setProductSearch(e.target.value)}
+                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 placeholder-slate-400"
+                  />
+                  <svg className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <Button onClick={() => setShowProductForm(!showProductForm)} className="bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap">
+                  <Plus className="w-4 h-4 mr-2" /> Add Product
+                </Button>
+              </div>
             </div>
 
             {showProductForm && (
@@ -343,7 +358,10 @@ export default function AdminDashboard() {
             </div>
 
             <div className="space-y-3">
-              {products.filter(p => activeCategoryTab === 'All' || p.category === activeCategoryTab).map(product => (
+              {products
+                .filter(p => activeCategoryTab === 'All' || p.category === activeCategoryTab)
+                .filter(p => !productSearch.trim() || p.name.toLowerCase().includes(productSearch.toLowerCase()) || p.description.toLowerCase().includes(productSearch.toLowerCase()))
+                .map(product => (
                 <Card key={product.id} className="bg-slate-800 border-slate-700 p-4">
                   {editingProductId === product.id ? (
                     <div className="space-y-3">
