@@ -14,7 +14,7 @@ const slides = [
     bgColor: 'bg-green-700',
     buttonText: 'Shop Fresh',
     href: '/?category=Fresh%20Food',
-    image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=800&auto=format&fit=crop'
+    image: 'https://images.unsplash.com/photo-1488459716781-31db52582fe9?q=80&w=1200&auto=format&fit=crop&crop=center'
   },
   {
     id: 2,
@@ -94,11 +94,11 @@ export default function HeroBanner() {
                   </div>
                   
                   {/* Right Image Box */}
-                  <div className="relative w-full md:w-[45%] h-64 md:h-full bg-gray-200">
+                  <div className="relative w-full md:w-[45%] h-64 md:h-full bg-white overflow-hidden">
                     <img 
                       src={slide.image} 
                       alt={slide.title}
-                      className="absolute inset-0 w-full h-full object-cover"
+                      className="absolute inset-0 w-full h-full object-cover object-center scale-95"
                     />
                   </div>
                 </div>
