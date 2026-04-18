@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import { auth, googleProvider, facebookProvider } from '@/lib/firebase'
+import { signInWithPopup } from 'firebase/auth'
 
 export interface User {
   id: string
@@ -12,6 +14,7 @@ export interface AuthContextType {
   token: string | null
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
+  loginWithFirebase: (provider: 'google' | 'facebook') => Promise<void>
   signup: (name: string, email: string, password: string) => Promise<void>
   logout: () => void
 }
@@ -21,6 +24,7 @@ export const AuthContext = React.createContext<AuthContextType>({
   token: null,
   isLoading: true,
   login: async () => {},
+  loginWithFirebase: async () => {},
   signup: async () => {},
   logout: () => {},
 })
@@ -71,6 +75,27 @@ export function AuthProvider({ children, onAuthChange }: {
     applyAuth(data.user, data.token)
   }, [applyAuth])
 
+  const loginWithFirebase = useCallback(async (provider: 'google' | 'facebook') => {
+    try {
+      const authProvider = provider === 'google' ? googleProvider : facebookProvider
+      const result = await signInWithPopup(auth, authProvider)
+      const firebaseToken = await result.user.getIdToken()
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
+      const res = await fetch(`${apiUrl}/auth/firebase`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: firebaseToken }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || 'Firebase Backend sync failed')
+      applyAuth(data.user, data.token)
+    } catch (e: any) {
+      console.error(e)
+      throw new Error(e.message || 'Third-party login failed')
+    }
+  }, [applyAuth])
+
   const signup = useCallback(async (name: string, email: string, password: string) => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
     const res = await fetch(`${apiUrl}/auth/signup`, {
@@ -92,7 +117,7 @@ export function AuthProvider({ children, onAuthChange }: {
   }, [onAuthChange])
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, token, isLoading, login, loginWithFirebase, signup, logout }}>
       {children}
     </AuthContext.Provider>
   )
