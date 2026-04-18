@@ -58,6 +58,12 @@ export default function AdminDashboard() {
   const [formData, setFormData] = useState({ name: '', description: '', price: '', category: '', stock: '', imageUrl: '' })
   const [editingProductId, setEditingProductId] = useState<string | null>(null)
   const [editForm, setEditForm] = useState({ name: '', description: '', price: '', category: '', stock: '', imageUrl: '' })
+  
+  // Admin creation state
+  const [showAddAdmin, setShowAddAdmin] = useState(false)
+  const [newAdminName, setNewAdminName] = useState('')
+  const [newAdminEmail, setNewAdminEmail] = useState('')
+  const [newAdminPassword, setNewAdminPassword] = useState('')
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken')
@@ -205,6 +211,29 @@ export default function AdminDashboard() {
       await fetch(`${apiUrl}/users/${userId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } })
       setUsers(users.filter(u => u.id !== userId))
     } catch (e) { console.error('Delete user failed', e) }
+  }
+
+  const handleAddAdmin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const token = localStorage.getItem('adminToken')
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
+    try {
+      const res = await fetch(`${apiUrl}/auth/admin-signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ name: newAdminName, email: newAdminEmail, password: newAdminPassword })
+      })
+      if (res.ok) {
+        alert('Admin account created successfully!')
+        setShowAddAdmin(false); setNewAdminName(''); setNewAdminEmail(''); setNewAdminPassword('')
+        loadUsers()
+      } else {
+        const err = await res.json()
+        alert('Failed to create admin: ' + err.message)
+      }
+    } catch (e) {
+      console.error('Failed to create admin', e)
+    }
   }
 
   const handleSignOut = () => {
@@ -416,7 +445,39 @@ export default function AdminDashboard() {
         {/* Users Tab */}
         {activeTab === 'users' && (
           <div>
-            <h2 className="text-2xl font-bold text-white mb-6">User Management</h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-white">User Management</h2>
+              <Button onClick={() => setShowAddAdmin(!showAddAdmin)} className="bg-red-600 hover:bg-red-700 text-white">
+                <Shield className="w-4 h-4 mr-2" /> Add Administrator
+              </Button>
+            </div>
+
+            {showAddAdmin && (
+              <Card className="bg-slate-800 border-slate-700 p-6 mb-6">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2"><Shield className="w-5 h-5 text-red-500"/> Create Secure Admin Account</h3>
+                <form onSubmit={handleAddAdmin} autoComplete="off" className="space-y-4">
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-slate-300 mb-1 block">Full Name</label>
+                      <Input type="text" value={newAdminName} onChange={e => setNewAdminName(e.target.value)} className="bg-slate-700 border-slate-600 text-white" required autoComplete="off" />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-slate-300 mb-1 block">Email</label>
+                      <Input type="email" value={newAdminEmail} onChange={e => setNewAdminEmail(e.target.value)} className="bg-slate-700 border-slate-600 text-white" required autoComplete="off" />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-slate-300 mb-1 block">Password</label>
+                      <Input type="password" value={newAdminPassword} onChange={e => setNewAdminPassword(e.target.value)} className="bg-slate-700 border-slate-600 text-white" minLength={6} required autoComplete="new-password" />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <Button type="submit" className="bg-red-600 hover:bg-red-700">Create Admin</Button>
+                    <Button type="button" onClick={() => setShowAddAdmin(false)} variant="outline" className="bg-slate-700 hover:bg-slate-600 border-slate-600 text-white">Cancel</Button>
+                  </div>
+                </form>
+              </Card>
+            )}
+
             <div className="space-y-3">
               {users.length === 0 && (
                 <Card className="bg-slate-800 border-slate-700 p-6 text-center"><p className="text-slate-400">No users found. Check backend connection.</p></Card>
@@ -427,7 +488,7 @@ export default function AdminDashboard() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="text-white font-semibold">{user.name}</h3>
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${user.role === 'admin' ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-600 text-slate-300'}`}>{user.role}</span>
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${user.role === 'admin' ? 'bg-red-500/20 text-red-400' : 'bg-slate-600 text-slate-300'}`}>{user.role}</span>
                       </div>
                       <p className="text-slate-400 text-sm">{user.email}</p>
                       <p className="text-slate-500 text-xs mt-1">Joined: {user.createdAt}</p>
