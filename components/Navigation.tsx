@@ -45,7 +45,10 @@ export default function Navigation() {
   const router = useRouter()
 
   const handleLogout = () => {
-    authState.logout()
+    if (window.confirm("Are you sure you want to log out?")) {
+      authState.logout()
+      router.push('/')
+    }
   }
 
   const handleSearch = (e?: React.FormEvent) => {

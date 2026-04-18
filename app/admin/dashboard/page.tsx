@@ -208,8 +208,10 @@ export default function AdminDashboard() {
   }
 
   const handleSignOut = () => {
-    localStorage.removeItem('adminToken'); localStorage.removeItem('adminUser')
-    router.replace('/')
+    if (window.confirm("Are you sure you want to sign out of the Admin Portal?")) {
+      localStorage.removeItem('adminToken'); localStorage.removeItem('adminUser')
+      router.replace('/')
+    }
   }
 
   return (
