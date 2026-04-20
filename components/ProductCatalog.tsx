@@ -73,15 +73,24 @@ function ProductCatalogInner() {
 
   const isDealsMode = searchParams.get('deals') === 'true'
 
-  // Client-side filtering ensures instant UI updates when switching tabs.
-  let filtered = categoryParam === 'All'
-    ? products
-    : products.filter(p => p.category?.name === categoryParam)
+  // Helper: safely extract category name whether API returns object or string
+  const getCatName = (p: Product): string => {
+    if (!p.category) return ''
+    if (typeof p.category === 'object') return ((p.category as any).name || '').trim()
+    return String(p.category).trim()
+  }
 
-  // Frontend subcategory filtering based on exact string match in title or description.
-  if (categoryParam !== 'All' && !subcategoryParam.startsWith('All ')) {
-    filtered = filtered.filter(p => 
-      p.name.toLowerCase().includes(subcategoryParam.toLowerCase()) || 
+  let filtered = [...products]
+
+  if (categoryParam !== 'All') {
+    filtered = filtered.filter(p =>
+      getCatName(p).toLowerCase() === categoryParam.toLowerCase()
+    )
+  }
+
+  if (categoryParam !== 'All' && subcategoryParam && !subcategoryParam.toLowerCase().startsWith('all ')) {
+    filtered = filtered.filter(p =>
+      p.name.toLowerCase().includes(subcategoryParam.toLowerCase()) ||
       p.description.toLowerCase().includes(subcategoryParam.toLowerCase())
     )
   }
@@ -89,7 +98,7 @@ function ProductCatalogInner() {
   if (isDealsMode) {
     filtered = filtered.map(p => ({
       ...p,
-      price: p.price * 0.85, // 15% automatic discount
+      price: p.price * 0.85,
       description: `🔥 DEAL ${p.description}`
     }))
   }
@@ -103,7 +112,11 @@ function ProductCatalogInner() {
   }
 
   const setSubcategory = (sub: string) => {
-    router.push(`/?category=${encodeURIComponent(categoryParam)}&subcategory=${encodeURIComponent(sub)}`, { scroll: false })
+    if (sub.toLowerCase().startsWith('all ')) {
+      router.push(`/?category=${encodeURIComponent(categoryParam)}`, { scroll: false })
+    } else {
+      router.push(`/?category=${encodeURIComponent(categoryParam)}&subcategory=${encodeURIComponent(sub)}`, { scroll: false })
+    }
   }
 
   return (
