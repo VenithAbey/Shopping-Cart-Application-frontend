@@ -12,6 +12,7 @@ export interface Product {
   price: number
   stock: number
   imageUrl: string
+  subcategory?: string
   category: { id: number; name: string }
 }
 
@@ -89,10 +90,16 @@ function ProductCatalogInner() {
   }
 
   if (categoryParam !== 'All' && subcategoryParam && !subcategoryParam.toLowerCase().startsWith('all ')) {
-    filtered = filtered.filter(p =>
-      p.name.toLowerCase().includes(subcategoryParam.toLowerCase()) ||
-      p.description.toLowerCase().includes(subcategoryParam.toLowerCase())
-    )
+    filtered = filtered.filter(p => {
+      // Prefer the dedicated subcategory field; fall back to keyword search in name/description
+      if (p.subcategory) {
+        return p.subcategory.toLowerCase() === subcategoryParam.toLowerCase()
+      }
+      return (
+        p.name.toLowerCase().includes(subcategoryParam.toLowerCase()) ||
+        p.description.toLowerCase().includes(subcategoryParam.toLowerCase())
+      )
+    })
   }
 
   if (isDealsMode) {
