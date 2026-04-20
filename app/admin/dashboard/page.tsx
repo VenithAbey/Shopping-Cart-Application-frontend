@@ -7,6 +7,15 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ArrowLeft, Plus, Trash2, Edit2, Users, KeyRound, LogOut, Shield } from 'lucide-react'
 
+const SUBCATEGORIES: Record<string, string[]> = {
+  'Fresh Food':     ['Vegetables', 'Fruits', 'Fresh Seafood', 'Meat'],
+  'Bakery & Sweets':['Cakes', 'Biscuits', 'Bread', 'Pastries'],
+  'Dairy & Eggs':   ['Milk', 'Cheese', 'Yogurt', 'Butter'],
+  'Pantry':         ['Grains', 'Spices', 'Oils', 'Canned Goods'],
+  'Drinks':         ['Coffee', 'Tea', 'Juice', 'Soft Drinks'],
+  'Snacks':         ['Chips', 'Nuts', 'Cookies', 'Candy'],
+}
+
 interface AdminProduct {
   id: string
   name: string
@@ -56,9 +65,9 @@ export default function AdminDashboard() {
   const [newPassword, setNewPassword] = useState('')
   const [oldPassword, setOldPassword] = useState('')
   const [pwError, setPwError] = useState('')
-  const [formData, setFormData] = useState({ name: '', description: '', price: '', category: '', stock: '', imageUrl: '' })
+  const [formData, setFormData] = useState({ name: '', description: '', price: '', category: '', subcategory: '', stock: '', imageUrl: '' })
   const [editingProductId, setEditingProductId] = useState<string | null>(null)
-  const [editForm, setEditForm] = useState({ name: '', description: '', price: '', category: '', stock: '', imageUrl: '' })
+  const [editForm, setEditForm] = useState({ name: '', description: '', price: '', category: '', subcategory: '', stock: '', imageUrl: '' })
   const [productSearch, setProductSearch] = useState('')
   
   // Admin creation state
@@ -139,17 +148,22 @@ export default function AdminDashboard() {
     const token = localStorage.getItem('adminToken')
     const targetCategory = categories.find(c => c.name === formData.category)
     if (!targetCategory) { alert('Please select a valid category'); return }
+    // Inject subcategory keyword into description so frontend filtering works
+    const sub = formData.subcategory
+    const desc = sub && !formData.description.toLowerCase().includes(sub.toLowerCase())
+      ? `${formData.description} — ${sub}`.trim()
+      : formData.description
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
     try {
       const res = await fetch(`${apiUrl}/products`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ name: formData.name, description: formData.description, price: parseFloat(formData.price), stock: parseInt(formData.stock), imageUrl: formData.imageUrl, categoryId: Number(targetCategory.id) })
+        body: JSON.stringify({ name: formData.name, description: desc, price: parseFloat(formData.price), stock: parseInt(formData.stock), imageUrl: formData.imageUrl, categoryId: Number(targetCategory.id) })
       })
       if (res.ok) {
         const saved = await res.json()
-        setProducts([...products, { id: String(saved.id), name: saved.name, description: saved.description, price: saved.price, category: typeof saved.category === 'object' ? saved.category.name : saved.category, stock: saved.stock }])
-        setFormData({ name: '', description: '', price: '', category: '', stock: '', imageUrl: '' })
+        setProducts([...products, { id: String(saved.id), name: saved.name, description: saved.description, price: saved.price, category: typeof saved.category === 'object' ? saved.category.name : saved.category, stock: saved.stock, imageUrl: saved.imageUrl || '' }])
+        setFormData({ name: '', description: '', price: '', category: '', subcategory: '', stock: '', imageUrl: '' })
         setShowProductForm(false)
       } else {
         const err = await res.json()
@@ -173,15 +187,20 @@ export default function AdminDashboard() {
   const handleEditProduct = async (id: string) => {
     const token = localStorage.getItem('adminToken')
     const targetCategory = categories.find(c => c.name === editForm.category)
+    // Inject subcategory keyword into description so frontend filtering works
+    const sub = editForm.subcategory
+    const desc = sub && !editForm.description.toLowerCase().includes(sub.toLowerCase())
+      ? `${editForm.description} — ${sub}`.trim()
+      : editForm.description
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
     try {
       const res = await fetch(`${apiUrl}/products/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ name: editForm.name, description: editForm.description, price: parseFloat(editForm.price), stock: parseInt(editForm.stock), imageUrl: editForm.imageUrl, categoryId: targetCategory?.id || '1' })
+        body: JSON.stringify({ name: editForm.name, description: desc, price: parseFloat(editForm.price), stock: parseInt(editForm.stock), imageUrl: editForm.imageUrl, categoryId: targetCategory?.id || '1' })
       })
       if (res.ok) {
-        setProducts(products.map(p => p.id === id ? { ...p, ...editForm, price: parseFloat(editForm.price), stock: parseInt(editForm.stock), category: editForm.category, imageUrl: editForm.imageUrl } : p))
+        setProducts(products.map(p => p.id === id ? { ...p, ...editForm, description: desc, price: parseFloat(editForm.price), stock: parseInt(editForm.stock), category: editForm.category, imageUrl: editForm.imageUrl } : p))
         setEditingProductId(null)
       }
     } catch (e) { console.error('Edit product failed', e) }
@@ -319,10 +338,18 @@ export default function AdminDashboard() {
                     </div>
                     <div>
                       <label className="text-sm font-medium text-slate-300 mb-1 block">Category</label>
-                      <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} className="w-full bg-slate-700 border border-slate-600 text-white rounded p-2" required>
+                      <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value, subcategory: '' })} className="w-full bg-slate-700 border border-slate-600 text-white rounded p-2" required>
                         <option value="">Select Category</option>
                         {categories.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
                       </select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-slate-300 mb-1 block">Subcategory</label>
+                      <select value={formData.subcategory} onChange={e => setFormData({ ...formData, subcategory: e.target.value })} className="w-full bg-slate-700 border border-slate-600 text-white rounded p-2" disabled={!formData.category}>
+                        <option value="">— Select Subcategory —</option>
+                        {(SUBCATEGORIES[formData.category] || []).map(sub => <option key={sub} value={sub}>{sub}</option>)}
+                      </select>
+                      {formData.subcategory && <p className="text-xs text-blue-400 mt-1">✓ "{formData.subcategory}" will be added to description for filtering</p>}
                     </div>
                     <div>
                       <label className="text-sm font-medium text-slate-300 mb-1 block">Price</label>
@@ -369,8 +396,13 @@ export default function AdminDashboard() {
                         <div><label className="text-xs text-slate-400 mb-1 block">Name</label>
                           <Input value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} className="bg-slate-700 border-slate-600 text-white h-8 text-sm" /></div>
                         <div><label className="text-xs text-slate-400 mb-1 block">Category</label>
-                          <select value={editForm.category} onChange={e => setEditForm({ ...editForm, category: e.target.value })} className="w-full bg-slate-700 border border-slate-600 text-white rounded p-1.5 text-sm">
+                          <select value={editForm.category} onChange={e => setEditForm({ ...editForm, category: e.target.value, subcategory: '' })} className="w-full bg-slate-700 border border-slate-600 text-white rounded p-1.5 text-sm">
                             {categories.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
+                          </select></div>
+                        <div><label className="text-xs text-slate-400 mb-1 block">Subcategory <span className="text-slate-500">(optional)</span></label>
+                          <select value={editForm.subcategory} onChange={e => setEditForm({ ...editForm, subcategory: e.target.value })} className="w-full bg-slate-700 border border-slate-600 text-white rounded p-1.5 text-sm">
+                            <option value="">— keep existing —</option>
+                            {(SUBCATEGORIES[editForm.category] || []).map(sub => <option key={sub} value={sub}>{sub}</option>)}
                           </select></div>
                         <div><label className="text-xs text-slate-400 mb-1 block">Price</label>
                           <Input type="number" step="0.01" value={editForm.price} onChange={e => setEditForm({ ...editForm, price: e.target.value })} className="bg-slate-700 border-slate-600 text-white h-8 text-sm" /></div>

@@ -26,6 +26,19 @@ const SUBCATEGORIES: Record<string, string[]> = {
   'Snacks': ['All Snacks', 'Chips', 'Nuts', 'Cookies', 'Candy']
 };
 
+// For multi-word subcategories, map to the single distinctive keyword that
+// actually appears in product names / descriptions.
+const SUBCATEGORY_KEYWORDS: Record<string, string> = {
+  // Multi-word → use the distinctive single word
+  'Fresh Seafood': 'seafood',
+  'Canned Goods':  'canned',
+  'Soft Drinks':   'soft drinks',
+  // Singular/plural mismatches
+  'Biscuits': 'biscuit',
+  'Grains':   'grain',
+  'Oils':     'oil',
+};
+
 function ProductCatalogInner() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -78,11 +91,12 @@ function ProductCatalogInner() {
     ? products
     : products.filter(p => p.category?.name === categoryParam)
 
-  // Frontend subcategory filtering based on exact string match in title or description.
-  if (categoryParam !== 'All' && !subcategoryParam.startsWith('All ')) {
-    filtered = filtered.filter(p => 
-      p.name.toLowerCase().includes(subcategoryParam.toLowerCase()) || 
-      p.description.toLowerCase().includes(subcategoryParam.toLowerCase())
+  // Client-side subcategory filter — uses keyword map for multi-word subcategories
+  if (categoryParam !== 'All' && subcategoryParam && !subcategoryParam.startsWith('All ')) {
+    const keyword = (SUBCATEGORY_KEYWORDS[subcategoryParam] ?? subcategoryParam).toLowerCase()
+    filtered = filtered.filter(p =>
+      p.name.toLowerCase().includes(keyword) ||
+      p.description.toLowerCase().includes(keyword)
     )
   }
 
@@ -95,6 +109,7 @@ function ProductCatalogInner() {
   }
 
   const setCategory = (cat: string) => {
+    // Always clear subcategory when switching main category
     if (cat === 'All') {
       router.push('/', { scroll: false })
     } else {
@@ -103,7 +118,12 @@ function ProductCatalogInner() {
   }
 
   const setSubcategory = (sub: string) => {
-    router.push(`/?category=${encodeURIComponent(categoryParam)}&subcategory=${encodeURIComponent(sub)}`, { scroll: false })
+    if (sub.startsWith('All ')) {
+      // "All Fresh Food" etc. → just show the category without subcategory filter
+      router.push(`/?category=${encodeURIComponent(categoryParam)}`, { scroll: false })
+    } else {
+      router.push(`/?category=${encodeURIComponent(categoryParam)}&subcategory=${encodeURIComponent(sub)}`, { scroll: false })
+    }
   }
 
   return (
@@ -152,7 +172,10 @@ function ProductCatalogInner() {
         <div className="mb-8 overflow-x-auto pb-4 scrollbar-hide">
           <div className="flex items-center gap-2 min-w-max border-t border-gray-200 pt-4">
             {SUBCATEGORIES[categoryParam].map((sub) => {
-              const isSelected = subcategoryParam === sub
+              // "All Fresh Food" is selected when there is no subcategory param in the URL
+              const isSelected = sub.startsWith('All ')
+                ? !searchParams.get('subcategory')
+                : subcategoryParam === sub
               return (
                 <button
                   key={sub}
