@@ -12,7 +12,6 @@ export interface Product {
   price: number
   stock: number
   imageUrl: string
-  subcategory?: string
   category: { id: number; name: string }
 }
 
@@ -74,38 +73,23 @@ function ProductCatalogInner() {
 
   const isDealsMode = searchParams.get('deals') === 'true'
 
-  // Helper: safely extract category name whether API returns object or string
-  const getCatName = (p: Product): string => {
-    if (!p.category) return ''
-    if (typeof p.category === 'object') return ((p.category as any).name || '').trim()
-    return String(p.category).trim()
-  }
+  // Client-side filtering ensures instant UI updates when switching tabs.
+  let filtered = categoryParam === 'All'
+    ? products
+    : products.filter(p => p.category?.name === categoryParam)
 
-  let filtered = [...products]
-
-  if (categoryParam !== 'All') {
-    filtered = filtered.filter(p =>
-      getCatName(p).toLowerCase() === categoryParam.toLowerCase()
+  // Frontend subcategory filtering based on exact string match in title or description.
+  if (categoryParam !== 'All' && !subcategoryParam.startsWith('All ')) {
+    filtered = filtered.filter(p => 
+      p.name.toLowerCase().includes(subcategoryParam.toLowerCase()) || 
+      p.description.toLowerCase().includes(subcategoryParam.toLowerCase())
     )
-  }
-
-  if (categoryParam !== 'All' && subcategoryParam && !subcategoryParam.toLowerCase().startsWith('all ')) {
-    filtered = filtered.filter(p => {
-      // Prefer the dedicated subcategory field; fall back to keyword search in name/description
-      if (p.subcategory) {
-        return p.subcategory.toLowerCase() === subcategoryParam.toLowerCase()
-      }
-      return (
-        p.name.toLowerCase().includes(subcategoryParam.toLowerCase()) ||
-        p.description.toLowerCase().includes(subcategoryParam.toLowerCase())
-      )
-    })
   }
 
   if (isDealsMode) {
     filtered = filtered.map(p => ({
       ...p,
-      price: p.price * 0.85,
+      price: p.price * 0.85, // 15% automatic discount
       description: `🔥 DEAL ${p.description}`
     }))
   }
@@ -119,11 +103,7 @@ function ProductCatalogInner() {
   }
 
   const setSubcategory = (sub: string) => {
-    if (sub.toLowerCase().startsWith('all ')) {
-      router.push(`/?category=${encodeURIComponent(categoryParam)}`, { scroll: false })
-    } else {
-      router.push(`/?category=${encodeURIComponent(categoryParam)}&subcategory=${encodeURIComponent(sub)}`, { scroll: false })
-    }
+    router.push(`/?category=${encodeURIComponent(categoryParam)}&subcategory=${encodeURIComponent(sub)}`, { scroll: false })
   }
 
   return (
