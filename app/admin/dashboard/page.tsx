@@ -189,9 +189,20 @@ export default function AdminDashboard() {
     const targetCategory = categories.find(c => c.name === editForm.category)
     // Inject subcategory keyword into description so frontend filtering works
     const sub = editForm.subcategory
-    const desc = sub && !editForm.description.toLowerCase().includes(sub.toLowerCase())
-      ? `${editForm.description} — ${sub}`.trim()
-      : editForm.description
+    let desc = editForm.description
+    
+    if (sub) {
+      // Remove any existing subcategories from the end of the description to prevent duplicates
+      const allSubcategories = Object.values(SUBCATEGORIES).flat()
+      allSubcategories.forEach(existingSub => {
+        const regex = new RegExp(` — ${existingSub}$`, 'i')
+        desc = desc.replace(regex, '')
+      })
+      
+      if (!desc.toLowerCase().includes(sub.toLowerCase())) {
+        desc = `${desc} — ${sub}`.trim()
+      }
+    }
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
     try {
       const res = await fetch(`${apiUrl}/products/${id}`, {
