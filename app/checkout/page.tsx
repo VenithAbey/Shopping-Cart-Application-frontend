@@ -64,7 +64,6 @@ export default function CheckoutPage() {
           phone: formData.phone,
           address: formData.address,
           city: formData.city,
-          state: formData.state,
           zipCode: formData.zipCode
         },
         items: items,
@@ -274,16 +273,17 @@ export default function CheckoutPage() {
                     </div>
                     
 
-                  <div>
-                    <label className="text-sm font-medium text-slate-300 mb-1 block">Zip Code</label>
-                    <Input
-                      type="text"
-                      name="zipCode"
-                      value={formData.zipCode}
-                      onChange={handleInputChange}
-                      className="bg-slate-700 border-slate-600 text-white"
-                      required
-                    />
+                    <div>
+                      <label className="text-sm font-medium text-slate-300 mb-1 block">Zip Code</label>
+                      <Input
+                        type="text"
+                        name="zipCode"
+                        value={formData.zipCode}
+                        onChange={handleInputChange}
+                        className="bg-slate-700 border-slate-600 text-white"
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
               </Card>
