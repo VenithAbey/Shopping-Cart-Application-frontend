@@ -91,13 +91,23 @@ function ProductCatalogInner() {
     ? products
     : products.filter(p => p.category?.name === categoryParam)
 
-  // Client-side subcategory filter — uses keyword map for multi-word subcategories
+  // Client-side subcategory filter — prioritizes explicit admin tags
   if (categoryParam !== 'All' && subcategoryParam && !subcategoryParam.startsWith('All ')) {
     const keyword = (SUBCATEGORY_KEYWORDS[subcategoryParam] ?? subcategoryParam).toLowerCase()
-    filtered = filtered.filter(p =>
-      p.name.toLowerCase().includes(keyword) ||
-      p.description.toLowerCase().includes(keyword)
-    )
+    const validSubs = (SUBCATEGORIES[categoryParam] || []).filter(sub => !sub.startsWith('All '))
+
+    filtered = filtered.filter(p => {
+      // Check if this product has an explicit admin-assigned subcategory tag
+      const explicitTag = validSubs.find(sub => p.description.endsWith(` — ${sub}`))
+      
+      if (explicitTag) {
+        // If it was explicitly assigned, ONLY show it in that exact subcategory
+        return explicitTag === subcategoryParam
+      }
+      
+      // If no explicit tag, fall back to keyword search
+      return p.name.toLowerCase().includes(keyword) || p.description.toLowerCase().includes(keyword)
+    })
   }
 
   if (isDealsMode) {
