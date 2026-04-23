@@ -22,7 +22,6 @@ export default function CheckoutPage() {
     phone: '',
     address: '',
     city: '',
-    state: '',
     zipCode: '',
     cardNumber: '',
     expiryDate: '',
@@ -75,7 +74,7 @@ export default function CheckoutPage() {
 
       // Build Backend Payload
       const orderPayload = {
-        shippingAddress: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}`,
+        shippingAddress: `${formData.address}, ${formData.city}, ${formData.zipCode}`,
         items: items.map(i => ({ productId: Number(i.id), quantity: i.quantity }))
       }
 
@@ -261,7 +260,7 @@ export default function CheckoutPage() {
                     />
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid md:grid-cols-1 gap-4">
                     <div>
                       <label className="text-sm font-medium text-slate-300 mb-1 block">City</label>
                       <Input
@@ -273,18 +272,7 @@ export default function CheckoutPage() {
                         required
                       />
                     </div>
-                    <div>
-                      <label className="text-sm font-medium text-slate-300 mb-1 block">State</label>
-                      <Input
-                        type="text"
-                        name="state"
-                        value={formData.state}
-                        onChange={handleInputChange}
-                        className="bg-slate-700 border-slate-600 text-white"
-                        required
-                      />
-                    </div>
-                  </div>
+                    
 
                   <div>
                     <label className="text-sm font-medium text-slate-300 mb-1 block">Zip Code</label>
