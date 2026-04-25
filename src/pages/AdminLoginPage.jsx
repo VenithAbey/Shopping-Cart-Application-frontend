@@ -68,7 +68,7 @@ export default function AdminLoginPage() {
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="admin@shopcart.com"
+                  placeholder="admin@yourstore.com"
                   required
                   className="w-full bg-slate-700/50 border border-slate-600 text-white rounded-xl pl-10 pr-4 py-2.5 text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-colors"
                 />
